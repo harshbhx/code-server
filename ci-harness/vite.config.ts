@@ -6,9 +6,20 @@ const here = fileURLToPath(new URL('.', import.meta.url));
 const webUi = fileURLToPath(new URL('../packages/web-ui/', import.meta.url));
 const stub = (n: string) => `${here}stubs/${n}.tsx`;
 
+const stubNames = ['useDatabase','useAlert','useTabularisClient','usePlatformCapabilities','useToast','useSettings','useRightSidebar'];
+const stubPlugin = {
+    name: 'harness-stubs',
+    enforce: 'pre' as const,
+    resolveId(id: string) {
+        const base = id.split('/').pop() ?? '';
+        if (stubNames.includes(base) && (id.startsWith('.') || id.startsWith('@/hooks/'))) return stub(base);
+        return null;
+    },
+};
+
 export default defineConfig({
     root: here,
-    plugins: [react()],
+    plugins: [stubPlugin, react()],
     css: {postcss: webUi},
     server: {fs: {strict: false}},
     resolve: {
