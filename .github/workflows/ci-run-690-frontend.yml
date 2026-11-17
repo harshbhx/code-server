@@ -1,0 +1,61 @@
+name: ci-run-690-frontend
+on:
+  push:
+    branches: [ci-run/690-frontend]
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run typecheck
+  eslint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec eslint .
+      - run: node scripts/check-theme-tokens.mjs
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec prettier --check .
+        continue-on-error: true
+      - name: prettier patch for touched files
+        run: |
+          FILES=$(git diff --name-only HEAD~2 HEAD -- packages | grep -E '\.(ts|tsx|json)$' || true)
+          echo "$FILES"
+          pnpm exec prettier --write $FILES
+          git diff -- packages | tee /tmp/prettier.patch
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec vitest --config packages/web-ui/vitest.config.ts run
