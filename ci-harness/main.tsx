@@ -1,3 +1,4 @@
+import '@/polyfills';
 import React, {useState} from 'react';
 import ReactDOM from 'react-dom/client';
 import i18next from 'i18next';

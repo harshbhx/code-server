@@ -22,6 +22,8 @@ export default defineConfig({
             {find: '@/hooks/useRightSidebar', replacement: stub('useRightSidebar')},
             {find: '@/platform/secondaryWindowSessions', replacement: stub('secondaryWindowSessions')},
             {find: '@tauri-apps/api/event', replacement: stub('tauriEvent')},
+            {find: /^buffer$/, replacement: 'buffer'},
+            {find: /^util$/, replacement: 'util'},
             {find: '@', replacement: `${webUi}src`},
         ],
     },
