@@ -1,0 +1,30 @@
+name: ci-run-690-shots
+on:
+  push:
+    branches: [ci-run/690-shots]
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: start harness
+        run: |
+          nohup pnpm exec vite --config ci-harness/vite.config.ts --port 5199 > vite.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://localhost:5199/ >/dev/null && break; sleep 2; done
+          tail -5 vite.log
+      - name: screenshots
+        working-directory: ci-harness
+        run: node shoot.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shots
+          path: ci-harness/shots
+      - if: always()
+        run: tail -40 vite.log
